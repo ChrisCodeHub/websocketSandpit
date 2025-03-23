@@ -1,0 +1,20 @@
+{
+  "name": "websockets",
+  "version": "1.0.0",
+  "description": "This sandpit aims to look at websockets in NodeJS/",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.13.11",
+    "@types/ws": "^8.18.0",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "ws": "^8.18.1"
+  }
+}
