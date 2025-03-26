@@ -37,57 +37,97 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var ws_1 = require("ws");
-var myComms = {
-    myWss: new ws_1.WebSocketServer({ port: 8080 }),
-    ws: null,
-    isConnected: false,
-    errorCount: 0,
-};
-console.log("WebSocket server started on ws://localhost:8080");
-myComms.myWss.on('connection', function (ws) {
-    myComms.isConnected = true;
-    console.log("Client connected");
-    myComms.ws = ws;
-    // Send a welcome message to the client in JSON format
-    if (myComms.isConnected == true) {
-        myComms.ws.send(JSON.stringify({ type: "welcome", message: "Welcome to the WebSocket server!" }));
+// let myComms : ImyComms = {
+//     myWss : new WebSocketServer({ port: 8080 }),    
+//     ws : null,
+//     isConnected : false,
+//     errorCount : 0,
+// }
+var commsWebSocketServer = /** @class */ (function () {
+    function commsWebSocketServer(portToUse) {
+        var _this = this;
+        this.myWss = new ws_1.WebSocketServer({ port: portToUse });
+        this.isConnected = false;
+        this.errorCount = 0;
+        console.log("WebSocket server started on ws://localhost:".concat(portToUse));
+        this.myWss.on('connection', function (ws) {
+            _this.isConnected = true;
+            _this.ws = ws;
+            console.log("Client connected");
+            _this.ws.on('close', function () {
+                _this.isConnected = false;
+                console.log("Client disconnected");
+            });
+            _this.ws.on('error', function (error) {
+                _this.isConnected = false;
+                console.log(" web socket went into ERROR ".concat(error));
+            });
+        });
     }
-    myComms.ws.on('message', function (message) {
-        try {
-            var data = JSON.parse(message.toString());
-            console.log("Received:", data);
-            // Send a response back
-            myComms.ws.send(JSON.stringify({ reply: "Hello, ".concat(data.name, "!") }));
+    commsWebSocketServer.prototype.sendMessage = function (message) {
+        if (this.isConnected == true) {
+            this.ws.send(JSON.stringify(message));
         }
-        catch (error) {
-            myComms.ws.send(JSON.stringify({ reply: "server did not like your message" }));
+        else {
+            console.log(" web socket not connected cannot send messages ");
         }
-    });
-    myComms.ws.on('close', function () {
-        myComms.isConnected = false;
-        console.log("Client disconnected");
-    });
-    myComms.ws.on('error', function (error) {
-        myComms.isConnected = false;
-        console.log(" web socket went into ERROR ".concat(error));
-    });
-});
+    };
+    commsWebSocketServer.prototype.sendInitialMessage = function () {
+        var initialMessage = { type: "welcome", message: "Welcome to the WebSocket server!" };
+        if (this.isConnected == true) {
+            this.ws.send(JSON.stringify(initialMessage));
+        }
+        else {
+            console.log(" web socket not connected cannot send messages ");
+        }
+    };
+    return commsWebSocketServer;
+}());
+// console.log("WebSocket server started on ws://localhost:8080");
+// myComms.myWss.on('connection', (ws : WebSocket) => {
+//     myComms.isConnected = true;
+//     console.log("Client connected");
+//     myComms.ws  = ws
+//     // Send a welcome message to the client in JSON format
+//     if (myComms.isConnected == true) {
+//         myComms.ws.send(JSON.stringify({ type: "welcome", message: "Welcome to the WebSocket server!" }));
+//     }
+//     myComms.ws.on('message', (message : any) => {
+//         try {
+//             const data = JSON.parse(message.toString());
+//             console.log("Received:", data);
+//             // Send a response back
+//             myComms.ws.send(JSON.stringify({ reply: `Hello, ${data.name}!` }));
+//         }
+//         catch (error){
+//             myComms.ws.send(JSON.stringify({ reply: `server did not like your message` }));
+//         }
+//     });
+//     myComms.ws.on('close', () => {
+//         myComms.isConnected = false;
+//         console.log("Client disconnected");
+//     });
+//     myComms.ws.on('error', (error : any) => {
+//         myComms.isConnected = false;
+//         console.log(` web socket went into ERROR ${error}`);
+//     }); 
+// })
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var messageTemplate, loopForever;
+        var messageTemplate, talk, loopForever;
         return __generator(this, function (_a) {
             messageTemplate = {
                 "name": "billy",
                 "age": 51,
                 "index": 1,
             };
+            talk = new commsWebSocketServer(8080);
+            talk.sendInitialMessage();
             loopForever = function () {
                 setTimeout(function () {
                     console.log(" sending next message to the client");
                     messageTemplate.index++;
-                    if (myComms.isConnected == true) {
-                        myComms.ws.send(JSON.stringify(messageTemplate));
-                    }
+                    talk.sendMessage(messageTemplate);
                     loopForever();
                 }, 1000);
             };

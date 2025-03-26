@@ -1,6 +1,21 @@
 import { WebSocket } from "ws";
+import { BehaviorSubject } from "rxjs";
 
 const ws = new WebSocket('ws://localhost:8080');
+
+interface IstoreStuff{
+    name : string
+    age : number
+    index : number
+}
+
+let initial : IstoreStuff = {
+    name : "none",
+    age : 0,
+    index : 0,
+}
+
+const stuffHappened$ = new BehaviorSubject <IstoreStuff> (initial)
 
 ws.on('open', () => {
     console.log("Connected to server");
@@ -11,7 +26,9 @@ ws.on('open', () => {
 });
 
 ws.on('message', (data) => {
-    console.log("Received from server:", JSON.parse(data.toString()));
+    let messageJSON = JSON.parse(data.toString())
+    console.log("Received from server:", messageJSON);
+    stuffHappened$.next(messageJSON);  
 });
 
 ws.on('close', () => {
@@ -21,3 +38,10 @@ ws.on('close', () => {
 ws.on('error', (error) => {
     console.log(` websocket raised error ${error}`);
 });
+
+
+// Example: React to updates in BehaviorSubject
+stuffHappened$.subscribe((data) => {
+    console.log("Current state from stuffHappened:", data);
+    console.log(stuffHappened$.getValue());
+  });
